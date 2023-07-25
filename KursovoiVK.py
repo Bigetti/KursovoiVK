@@ -20,10 +20,10 @@ class VK:
 
 
 
-    def vk_get_fotos(self, vk_user_id, vk_access_token):
+    def vk_get_fotos(self):
         url = f"https://api.vk.com/method/photos.get"
         params = {
-            'owner_id': vk_user_id,
+            'owner_id': self.id,
             'album_id': 'profile',
             'extended': 1
         }
@@ -53,7 +53,7 @@ def main():
     print(res_info)
     print()
 
-    res_foto = vk.vk_get_fotos(vk_user_id, vk_access_token)
+    res_foto = vk.vk_get_fotos()
     print(res_foto)
 
 
