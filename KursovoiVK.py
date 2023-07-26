@@ -91,12 +91,20 @@ def main():
     if not photos:
         print("Couldn't gain photos from VK")
         return
-    # print(res_foto)
+    
 
     photos.sort(key=lambda x: (x['likes']['count'], x['date']), reverse = True)
 
     max_photos_to_save = 5
     photos_to_save = photos[:max_photos_to_save]
+    print(photos_to_save)
+
+    df = pd.DataFrame(photos_to_save)
+    excel_file_name = 'photos_to_save.xlsx'
+    df.to_excel(excel_file_name, index=False)
+    print(f"Data has been saved to {excel_file_name}")
+
+
 
 
 
@@ -104,7 +112,7 @@ def main():
         if 'url' in photo:
             photo_url = photo['url']
             file_name = photo['path'].split('/')[-1]
-            vk.put_fotos_to_yandex_disk(photo_url, photo["path"], yandex_disk_token)
+            vk.put_fotos_to_yandex_disk(photo_url, file_name, yandex_disk_token)
         else:
             print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
