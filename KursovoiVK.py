@@ -12,6 +12,7 @@ class VK:
        self.id = vk_user_id
        self.version = version
        self.params = {'access_token': self.token, 'v': self.version}
+     
 
     def users_info(self):
        url = 'https://api.vk.com/method/users.get'
@@ -25,7 +26,7 @@ class VK:
         url = f"https://api.vk.com/method/photos.get"
         params = {
             'owner_id': self.id,
-            'album_id': 'profile',
+            'album_id': '170109067',
             'extended': 1
         }
 
@@ -35,6 +36,11 @@ class VK:
         if 'error' in photos_data:
             print(f"Ошибка при получении фотографий VK: {photos_data['error']['error_msg']}")
             return None
+        
+
+        # Отладочный вывод для просмотра данных фотографий
+        for photo in photos_data['response']['items']:
+            print(photo)
 
         return photos_data['response']['items']
     
@@ -53,28 +59,72 @@ class VK:
 
 
 
-    def put_fotos_to_yandex_disk(self, file_name, photo_url, yandex_disk_token):
-
+    def put_fotos_to_yandex_disk(self, file_name, yandex_disk_token):
         photos = self.vk_get_fotos()
-        if not photos:
-            return
-        
+
         base_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
         folder_path = "/FotosVK/"
         url = f'{base_url}?path={folder_path}{file_name}'
 
         headers = {"Authorization": f"OAuth {yandex_disk_token}"}
-        response = requests.post(url, headers=headers, params={"url": photo_url})
-        if response.status_code == 202:
-            print(f'Successfully uploaded {file_name} to Yandex.Disk')
-            return True
-        else:
-            print(f'Failed')
-            return False
+
+        for photo in photos:
+            if 'sizes' in photo:
+                # Ищем фотографию с размером 'r' (оригинал) в списке размеров фотографии
+                photo_url = None
+                for size in photo['sizes']:
+                    if size["type"] == "r":
+                        photo_url = size["url"]
+                        break
+
+                # Если удалось найти фотографию с размером 'r', загружаем ее на Яндекс.Диск
+                if photo_url is not None:
+                    response = requests.post(url, headers=headers, params={"url": photo_url})
+                    if response.status_code == 202:
+                        print(f'Successfully uploaded {file_name} to Yandex.Disk')
+                        return True
+                    else:
+                        print(f'Failed to upload {file_name} to Yandex.Disk')
+                        return False
+                else:
+                    print(f"Фотография с ID {photo['id']} не содержит информации об URL размера 'r' и будет пропущена.")
+            else:
+                print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
         
+    # Этого нет в задании это эксперимент с загрузкой фото сначала на пк, чтобы понять где сбой
+    def download_photos_to_local(self, folder_path):
+        photos = self.vk_get_fotos()
+        if not photos:
+            print("No photos found on VK.")
+            return  # Выходим из метода, если нет фотографий
+
+        # Создаем папку для сохранения фотографий на локальном компьютере
+        os.makedirs(folder_path, exist_ok=True)
+
+        for photo in photos:
+            if 'sizes' in photo:
+                photo_url = photo['sizes'][-1]['url']
+                file_name = f"{photo['likes']['count']}_{photo['id']}.jpg"
+                local_file_path = os.path.join(folder_path, file_name)
+
+                # Загружаем фотографию с VK
+                response = requests.get(photo_url)
+                if response.status_code in [200, 201]:
+                    with open(local_file_path, 'wb') as f:
+                        f.write(response.content)
+                    print(f"Successfully downloaded {file_name} to {folder_path}")
+                else:
+                    print(f"Failed to download {file_name}")
+
+            else:
+                print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
+
+
 
 def main():
+
+    
 
     vk_access_token = open("token_vk_access").read()
     vk_user_id = open("token_user_id").read()
@@ -83,8 +133,12 @@ def main():
 
     vk = VK(vk_access_token, vk_user_id)
 
+
+    folder_path = r'F:\NETOLOGYPython\FotosVK'
+    vk.download_photos_to_local(folder_path)
+
     res_info = vk.users_info()
-    print(res_info)
+    # print(res_info)
     print()
 
     photos = vk.vk_get_fotos()
@@ -93,11 +147,20 @@ def main():
         return
     
 
+    
+    # Данные из вункции Гет Фотос с ВК преобразуем в json file
+    with open('vk_photos_data.json', 'w') as json_f:
+        json.dump(photos, json_f, indent=4)
+
+
     photos.sort(key=lambda x: (x['likes']['count'], x['date']), reverse = True)
 
     max_photos_to_save = 5
     photos_to_save = photos[:max_photos_to_save]
-    print(photos_to_save)
+    
+    with open('vk_photos_to_save.json', 'w') as json_f:
+        json.dump(photos_to_save, json_f, indent=4)
+    # print(photos_to_save)
 
     df = pd.DataFrame(photos_to_save)
     excel_file_name = 'photos_to_save.xlsx'
@@ -107,12 +170,11 @@ def main():
 
 
 
-
     for photo in photos_to_save:
-        if 'url' in photo:
-            photo_url = photo['url']
-            file_name = photo['path'].split('/')[-1]
-            vk.put_fotos_to_yandex_disk(photo_url, file_name, yandex_disk_token)
+        if 'sizes' in photo:
+         
+            file_name = f"{photo['likes']['count']}_{photo['id']}.jpg"
+            vk.put_fotos_to_yandex_disk(file_name, yandex_disk_token)
         else:
             print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
