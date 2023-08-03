@@ -74,7 +74,7 @@ class VK:
                 # Ищем фотографию с размером 'r' (оригинал) в списке размеров фотографии
                 photo_url = None
                 for size in photo['sizes']:
-                    if size["type"] == "r":
+                    if size["type"] == "o":
                         photo_url = size["url"]
                         break
 
