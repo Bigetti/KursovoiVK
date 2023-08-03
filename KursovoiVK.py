@@ -216,15 +216,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-  ###Данные для непрямого использования в программе
-# vk_pril_id = 51711680
-
-# vk_link = 'https://oauth.vk.com/authorize?client_id=51711680&scope=65536&response_type=token'
-
-# access_token_link_vk = '''https://oauth.vk.com/blank.html#access_token=vk1.a.5nnLMTio2eDDLhxQECDI28O5tIn0Azfm6trhgALV0JwMSvxTZlEkiGydZLy9YXeh2N2NuxGoyMc8cy9gUX8-K3Bhs_Ug-zD4mgZYg4AcRQ0qrr5F2OLsReAHPjBWvyD5K1
-# gC_6YYi48jKZVONpc0zEOehlXFpc6JNdANZpBgmnuxOxTB-528mD-ZQWGG7WJ0zYvIW0xFOwDhjqpOxurchsWQ&expires_in=0&user_id=1716063'''
-
- 
