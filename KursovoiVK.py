@@ -177,7 +177,7 @@ def main():
          
             file_name = f"{photo['likes']['count']}_{photo['id']}.jpg"
             vk.put_fotos_to_yandex_disk(file_name, yandex_disk_token)
-            photo_info = {"file_name": file_name, "size": "z"}
+            photo_info = {"file_name": file_name, "size": "o"}
             result_data.append(photo_info)
 
         else:
