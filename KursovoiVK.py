@@ -39,8 +39,9 @@ class VK:
         
 
         # Отладочный вывод для просмотра данных фотографий
-        for photo in photos_data['response']['items']:
-            print(photo)
+        # for photo in photos_data['response']['items']:
+        #     print(photo)
+           
 
         return photos_data['response']['items']
     
@@ -79,7 +80,8 @@ class VK:
 
                 # Если удалось найти фотографию с размером 'r', загружаем ее на Яндекс.Диск
                 if photo_url is not None:
-                    response = requests.post(url, headers=headers, params={"url": photo_url})
+                    response = requests.post(url, headers=headers, params={"url": photo_url, "overwrite": "true"})
+                    # response = requests.put(url, headers=headers, data={"url": photo_url, "overwrite": "true"})
                     if response.status_code == 202:
                         print(f'Successfully uploaded {file_name} to Yandex.Disk')
                         return True
@@ -168,26 +170,29 @@ def main():
     print(f"Data has been saved to {excel_file_name}")
 
 
-
+    result_data = []
 
     for photo in photos_to_save:
         if 'sizes' in photo:
          
             file_name = f"{photo['likes']['count']}_{photo['id']}.jpg"
             vk.put_fotos_to_yandex_disk(file_name, yandex_disk_token)
-        else:
-            print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
-
-
-    result_data = []
-    
-    for photo in photos_to_save:
-        if 'url' in photo:
-            file_name = photo['path'].split('/')[-1]
             photo_info = {"file_name": file_name, "size": "z"}
             result_data.append(photo_info)
+
         else:
-            print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
+            print(f"Фотография с ID {photo['id']} не содержит информации об sizes и URL и будет пропущена.")
+
+
+    # result_data = []
+    
+    # for photo in photos_to_save:
+    #     if 'url' in photo:
+    #         file_name = photo['path'].split('/')[-1]
+    #         photo_info = {"file_name": file_name, "size": "z"}
+    #         result_data.append(photo_info)
+    #     else:
+    #         print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
 
 
