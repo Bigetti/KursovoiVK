@@ -60,7 +60,7 @@ class VK:
         #     print(f"Failed to create folder {folder_path} on Yandex.Disk")
 
         # Проверяем, существует ли папка на Yandex.Disk
-        
+
         check_response = requests.get(url, headers=headers)
         if check_response.status_code == 200:
             print(f"Folder {folder_path} already exists on Yandex.Disk")
@@ -202,8 +202,15 @@ def main():
 
     for photo in photos_to_save:
         if 'sizes' in photo:
-                                    
-            file_name = f"{photo['likes']['count']}_{photo['id']}.jpg"
+            
+            upload_date = photo['date']
+            upload_date_formatted = datetime.datetime.fromtimestamp(upload_date).strftime('%Y-%m-%d')
+                
+                # Формируем имя файла на основе количества лайков и даты загрузки
+            likes_count = photo['likes']['count']
+            unique_id = photo['id']
+
+            file_name = f"{likes_count}_{upload_date_formatted}_{unique_id}.jpg"                        
             photo_info = {"file_name": file_name, "size": "x"}
             result_data.append(photo_info)
 
