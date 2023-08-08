@@ -2,6 +2,7 @@ import requests
 import json
 import os
 import pandas as pd
+import datetime
 
 
 
@@ -46,50 +47,71 @@ class VK:
         return photos_data['response']['items']
     
 
-    def create_folder_on_yandex_disk(self, yandex_disk_token, folder_path):
+    def create_folder_on_yandex_disk(self, folder_path, yandex_disk_token):
         base_url = "https://cloud-api.yandex.net/v1/disk/resources"
         url = f'{base_url}?path={folder_path}'
         headers = {'Authorization': f'OAuth {yandex_disk_token}'}
-        response = requests.put(url, headers=headers)
+       
+        # response = requests.put(url, headers=headers)
 
-        if response.status_code in [200, 201]:
-            print(f"Successfully created folder {folder_path} on Yandex.Disk")
+        # if response.status_code in [200, 201]:
+        #     print(f"Successfully created folder {folder_path} on Yandex.Disk")
+        # else:
+        #     print(f"Failed to create folder {folder_path} on Yandex.Disk")
+
+        # Проверяем, существует ли папка на Yandex.Disk
+        
+        check_response = requests.get(url, headers=headers)
+        if check_response.status_code == 200:
+            print(f"Folder {folder_path} already exists on Yandex.Disk")
         else:
-            print(f"Failed to create folder {folder_path} on Yandex.Disk")
+            create_response = requests.put(url, headers=headers)
+            if create_response.status_code in [200, 201]:
+                print(f"Successfully created folder {folder_path} on Yandex.Disk")
+            else:
+                print(f"Failed to create folder {folder_path} on Yandex.Disk")
 
 
-
-
-    def put_fotos_to_yandex_disk(self, file_name, yandex_disk_token):
-        photos = self.vk_get_fotos()
+    def put_fotos_to_yandex_disk(self, photos_to_save, folder_path, yandex_disk_token):
 
         base_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
-        folder_path = "/FotosVK/"
-        url = f'{base_url}?path={folder_path}{file_name}'
-
         headers = {"Authorization": f"OAuth {yandex_disk_token}"}
+        
 
-        for photo in photos:
+        # url = f'{base_url}?path={folder_path}/{file_name}'
+
+        
+        for photo in photos_to_save:
             if 'sizes' in photo:
-                # Ищем фотографию с размером 'r' (оригинал) в списке размеров фотографии
-                photo_url = None
-                for size in photo['sizes']:
-                    if size["type"] == "o":
-                        photo_url = size["url"]
-                        break
+               # Получаем дату загрузки фотографии в формате UNIX timestamp
+                upload_date = photo['date']
+                upload_date_formatted = datetime.datetime.fromtimestamp(upload_date).strftime('%Y-%m-%d')
+                
+                # Формируем имя файла на основе количества лайков и даты загрузки
+                likes_count = photo['likes']['count']
+                unique_id = photo['id']
+                file_name = f"{likes_count}_{upload_date_formatted}_{unique_id}.jpg"
 
-                # Если удалось найти фотографию с размером 'r', загружаем ее на Яндекс.Диск
-                if photo_url is not None:
-                    response = requests.post(url, headers=headers, params={"url": photo_url, "overwrite": "true"})
-                    # response = requests.put(url, headers=headers, data={"url": photo_url, "overwrite": "true"})
-                    if response.status_code == 202:
-                        print(f'Successfully uploaded {file_name} to Yandex.Disk')
-                        return True
-                    else:
-                        print(f'Failed to upload {file_name} to Yandex.Disk')
-                        return False
-                else:
-                    print(f"Фотография с ID {photo['id']} не содержит информации об URL размера 'r' и будет пропущена.")
+                url = f'{base_url}?path={folder_path}/{file_name}'
+
+                for size in photo['sizes']:
+                    if size["type"] == "x":
+                        photo_url = size["url"]
+                        response = requests.post(url, headers=headers, params={"url": photo_url, "overwrite": "true"})
+                        
+                        if response.status_code == 202:
+                            print(f'Successfully uploaded {file_name} to Yandex.Disk')
+                            found_x_size = True
+                            break  # Загрузка успешна, выходим из внутреннего цикла
+                        else:
+                            print(f'Failed to upload {file_name} to Yandex.Disk')
+                            found_x_size = True
+                            break  # После нахождения размера 'x' выходим из внутреннего цикла
+            
+          
+
+                if not found_x_size:
+                    print(f"Фотография с ID {photo['id']} не содержит информации об URL размера 'x' и будет пропущена.")
             else:
                 print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
@@ -136,12 +158,16 @@ def main():
     vk = VK(vk_access_token, vk_user_id)
 
 
-    folder_path = r'F:\NETOLOGYPython\FotosVK'
-    vk.download_photos_to_local(folder_path)
+    # folder_path_local = r'F:\NETOLOGYPython\FotosVK'
+    # vk.download_photos_to_local(folder_path_local)
 
-    res_info = vk.users_info()
-    # print(res_info)
-    print()
+    folder_path = r'/FotosVKGreatebyProgram'
+
+    vk.create_folder_on_yandex_disk(folder_path, yandex_disk_token)
+
+    # res_info = vk.users_info()
+    # # print(res_info)
+    # print()
 
     photos = vk.vk_get_fotos()
     if not photos:
@@ -169,15 +195,16 @@ def main():
     df.to_excel(excel_file_name, index=False)
     print(f"Data has been saved to {excel_file_name}")
 
+    
+    vk.put_fotos_to_yandex_disk(photos_to_save, folder_path, yandex_disk_token)
 
     result_data = []
 
     for photo in photos_to_save:
         if 'sizes' in photo:
-         
+                                    
             file_name = f"{photo['likes']['count']}_{photo['id']}.jpg"
-            vk.put_fotos_to_yandex_disk(file_name, yandex_disk_token)
-            photo_info = {"file_name": file_name, "size": "o"}
+            photo_info = {"file_name": file_name, "size": "x"}
             result_data.append(photo_info)
 
         else:
