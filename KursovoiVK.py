@@ -52,14 +52,6 @@ class VK:
         url = f'{base_url}?path={folder_path}'
         headers = {'Authorization': f'OAuth {yandex_disk_token}'}
        
-        # response = requests.put(url, headers=headers)
-
-        # if response.status_code in [200, 201]:
-        #     print(f"Successfully created folder {folder_path} on Yandex.Disk")
-        # else:
-        #     print(f"Failed to create folder {folder_path} on Yandex.Disk")
-
-        # Проверяем, существует ли папка на Yandex.Disk
 
         check_response = requests.get(url, headers=headers)
         if check_response.status_code == 200:
@@ -115,32 +107,7 @@ class VK:
                     else:
                         print(f'Failed to upload {file_name} to Yandex.Disk')
                                 
-
-                
-
-
-            #     for size in photo['sizes']:
-            #         if size["type"] == "x":
-            #             photo_url = size["url"]
-            #             response = requests.post(url, headers=headers, params={"url": photo_url, "overwrite": "true"})
-                        
-            #             if response.status_code == 202:
-            #                 print(f'Successfully uploaded {file_name} to Yandex.Disk')
-            #                 found_x_size = True
-            #                 break  # Загрузка успешна, выходим из внутреннего цикла
-            #             else:
-            #                 print(f'Failed to upload {file_name} to Yandex.Disk')
-            #                 found_x_size = True
-            #                 break  # После нахождения размера 'x' выходим из внутреннего цикла
-            
-          
-
-            #     if not found_x_size:
-            #         print(f"Фотография с ID {photo['id']} не содержит информации об URL размера 'x' и будет пропущена.")
-            # else:
-            #     print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
-
-        
+       
     # Этого нет в задании это эксперимент с загрузкой фото сначала на пк, чтобы понять где сбой
     def download_photos_to_local(self, folder_path):
         photos = self.vk_get_fotos()
@@ -243,18 +210,6 @@ def main():
             print(f"Фотография с ID {photo['id']} не содержит информации об sizes и URL и будет пропущена.")
 
 
-    # result_data = []
-    
-    # for photo in photos_to_save:
-    #     if 'url' in photo:
-    #         file_name = photo['path'].split('/')[-1]
-    #         photo_info = {"file_name": file_name, "size": "z"}
-    #         result_data.append(photo_info)
-    #     else:
-    #         print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
-
-
-
     with open('vk_photos.json', 'w') as json_f:
         json.dump(result_data, json_f, indent=4)
 
@@ -263,14 +218,6 @@ def main():
     excel_file_name = 'vk_photos.xlsx'
     df.to_excel(excel_file_name, index=False)
     print(f"Data has been saved to {excel_file_name}")
-
-
-    # # Преобразование списка словарей в DataFrame
-    # df = pd.DataFrame(photos)
-
-    # # Сохранение DataFrame в файл Excel
-    # df.to_excel('res_foto.xlsx', index=False)
-
 
 
 if __name__ == "__main__":
