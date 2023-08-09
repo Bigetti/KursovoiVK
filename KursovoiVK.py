@@ -77,9 +77,6 @@ class VK:
         base_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
         headers = {"Authorization": f"OAuth {yandex_disk_token}"}
         
-
-        # url = f'{base_url}?path={folder_path}/{file_name}'
-
         
         for photo in photos_to_save:
             if 'sizes' in photo:
@@ -90,30 +87,58 @@ class VK:
                 # Формируем имя файла на основе количества лайков и даты загрузки
                 likes_count = photo['likes']['count']
                 unique_id = photo['id']
+                found_x_size = False
                 file_name = f"{likes_count}_{upload_date_formatted}_{unique_id}.jpg"
 
                 url = f'{base_url}?path={folder_path}/{file_name}'
+                photo_url = None
 
                 for size in photo['sizes']:
                     if size["type"] == "x":
                         photo_url = size["url"]
-                        response = requests.post(url, headers=headers, params={"url": photo_url, "overwrite": "true"})
+                        break
+
+                if not photo_url:
+                    print(f"Фотография с ID {photo['id']} не содержит информации об URL размера 'x' и будет пропущена.")
+                    continue
+
+                check_url = f"https://cloud-api.yandex.net/v1/disk/resources?path={folder_path}/{file_name}"
+                check_response = requests.get(check_url, headers=headers)
+                # check_response = requests.get(url, headers=headers)
+
+                if check_response.status_code == 200:  # Файл существует, пропускаем
+                    print(f"Фотография {file_name} уже существует на Яндекс.Диске, пропущена.")
+                else:  # Файл не существует, загружаем новый
+                    response = requests.post(url, headers=headers, params={"url": photo_url, "overwrite": "true"})
+                    if response.status_code == 202:
+                        print(f'Successfully uploaded {file_name} to Yandex.Disk')
+                    else:
+                        print(f'Failed to upload {file_name} to Yandex.Disk')
+                                
+
+                
+
+
+            #     for size in photo['sizes']:
+            #         if size["type"] == "x":
+            #             photo_url = size["url"]
+            #             response = requests.post(url, headers=headers, params={"url": photo_url, "overwrite": "true"})
                         
-                        if response.status_code == 202:
-                            print(f'Successfully uploaded {file_name} to Yandex.Disk')
-                            found_x_size = True
-                            break  # Загрузка успешна, выходим из внутреннего цикла
-                        else:
-                            print(f'Failed to upload {file_name} to Yandex.Disk')
-                            found_x_size = True
-                            break  # После нахождения размера 'x' выходим из внутреннего цикла
+            #             if response.status_code == 202:
+            #                 print(f'Successfully uploaded {file_name} to Yandex.Disk')
+            #                 found_x_size = True
+            #                 break  # Загрузка успешна, выходим из внутреннего цикла
+            #             else:
+            #                 print(f'Failed to upload {file_name} to Yandex.Disk')
+            #                 found_x_size = True
+            #                 break  # После нахождения размера 'x' выходим из внутреннего цикла
             
           
 
-                if not found_x_size:
-                    print(f"Фотография с ID {photo['id']} не содержит информации об URL размера 'x' и будет пропущена.")
-            else:
-                print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
+            #     if not found_x_size:
+            #         print(f"Фотография с ID {photo['id']} не содержит информации об URL размера 'x' и будет пропущена.")
+            # else:
+            #     print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
         
     # Этого нет в задании это эксперимент с загрузкой фото сначала на пк, чтобы понять где сбой
