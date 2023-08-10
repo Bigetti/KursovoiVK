@@ -47,56 +47,6 @@ class VK:
         return photos_data['response']['items']
     
 
-
-    # Этого нет в задании это эксперимент с загрузкой фото сначала на пк, чтобы понять где сбой
-    def download_photos_to_local(self, folder_path_local):
-        photos = self.vk_get_fotos()
-        if not photos:
-            print("No photos found on VK.")
-            return  # Выходим из метода, если нет фотографий
-
-        # Создаем папку для сохранения фотографий на локальном компьютере
-        os.makedirs(folder_path_local, exist_ok=True)
-
-        for photo in photos:
-            if 'sizes' in photo:
-                # Получаем дату загрузки фотографии в формате UNIX timestamp
-                upload_date = photo['date']
-                upload_date_formatted = datetime.datetime.fromtimestamp(upload_date).strftime('%Y-%m-%d')
-                
-                # Формируем имя файла на основе количества лайков и даты загрузки
-                likes_count = photo['likes']['count']
-                unique_id = photo['id']
-                
-                file_name = f"{likes_count}_{upload_date_formatted}_{unique_id}.jpg"
-                photo_url = photo['sizes'][-1]['url']
-                
-                local_file_path = os.path.join(folder_path_local, file_name)
-
-                # Загружаем фотографию с VK
-                response = requests.get(photo_url)
-                if response.status_code in [200, 201]:
-                    with open(local_file_path, 'wb') as f:
-                        f.write(response.content)
-                    print(f"Successfully downloaded {file_name} to {folder_path_local}")
-                else:
-                    print(f"Failed to download {file_name}")
-
-            else:
-                print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
-
-
-
-
-class YandexDisk:
-
-    
-    def __init__(self, yandex_disk_token):
-        
-        self.token = yandex_disk_token
-        self.params = {'access_token': self.token}
-     
-
     def create_folder_on_yandex_disk(self, folder_path, yandex_disk_token):
         base_url = "https://cloud-api.yandex.net/v1/disk/resources"
         url = f'{base_url}?path={folder_path}'
@@ -138,7 +88,6 @@ class YandexDisk:
                 for size in photo['sizes']:
                     if size["type"] == "x":
                         photo_url = size["url"]
-                        print(photo_url)
                         break
 
                 if not photo_url:
@@ -159,7 +108,43 @@ class YandexDisk:
                         print(f'Failed to upload {file_name} to Yandex.Disk')
                                 
        
-    
+    # Этого нет в задании это эксперимент с загрузкой фото сначала на пк, чтобы понять где сбой
+    def download_photos_to_local(self, folder_path_local):
+        photos = self.vk_get_fotos()
+        if not photos:
+            print("No photos found on VK.")
+            return  # Выходим из метода, если нет фотографий
+
+        # Создаем папку для сохранения фотографий на локальном компьютере
+        os.makedirs(folder_path_local, exist_ok=True)
+
+        for photo in photos:
+            if 'sizes' in photo:
+                # Получаем дату загрузки фотографии в формате UNIX timestamp
+                upload_date = photo['date']
+                upload_date_formatted = datetime.datetime.fromtimestamp(upload_date).strftime('%Y-%m-%d')
+                
+                # Формируем имя файла на основе количества лайков и даты загрузки
+                likes_count = photo['likes']['count']
+                unique_id = photo['id']
+                
+                file_name = f"{likes_count}_{upload_date_formatted}_{unique_id}.jpg"
+                photo_url = photo['sizes'][-1]['url']
+                
+                local_file_path = os.path.join(folder_path_local, file_name)
+
+                # Загружаем фотографию с VK
+                response = requests.get(photo_url)
+                if response.status_code in [200, 201]:
+                    with open(local_file_path, 'wb') as f:
+                        f.write(response.content)
+                    print(f"Successfully downloaded {file_name} to {folder_path_local}")
+                else:
+                    print(f"Failed to download {file_name}")
+
+            else:
+                print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
+
 
 
 def main():
@@ -173,15 +158,13 @@ def main():
 
     vk = VK(vk_access_token, vk_user_id)
 
-    yaD = YandexDisk(yandex_disk_token)
-
 
     folder_path_local = r'F:\NETOLOGYPython\FotosVK'
     vk.download_photos_to_local(folder_path_local)
 
     folder_path = r'/FotosVKGreatebyProgram'
 
-    yaD.create_folder_on_yandex_disk(folder_path, yandex_disk_token)
+    vk.create_folder_on_yandex_disk(folder_path, yandex_disk_token)
 
     # res_info = vk.users_info()
     # # print(res_info)
@@ -214,7 +197,7 @@ def main():
     print(f"Data has been saved to {excel_file_name}")
 
     
-    yaD.put_fotos_to_yandex_disk(photos_to_save, folder_path, yandex_disk_token)
+    vk.put_fotos_to_yandex_disk(photos_to_save, folder_path, yandex_disk_token)
 
     result_data = []
 
