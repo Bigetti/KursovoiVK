@@ -138,7 +138,7 @@ class YandexDisk:
                 for size in photo['sizes']:
                     if size["type"] == "x":
                         photo_url = size["url"]
-                        print(photo_url)
+                        # print(photo_url)
                         break
 
                 if not photo_url:
