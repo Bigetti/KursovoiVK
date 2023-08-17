@@ -82,12 +82,3 @@ class VK:
                 print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
 
-
-    def get_user_id_by_screen_name(self, screen_name):
-        url = 'https://api.vk.com/method/users.get'
-        params = {'user_ids': screen_name}
-        response = requests.get(url, params={**self.params, **params})
-        data = response.json()
-        if 'response' in data and len(data['response']) > 0:
-            return data['response'][0]['id']
-        return None
