@@ -40,6 +40,36 @@ def get_user_id(vk_access_token, user_input):
 
 
 
+def check_yandex_disk_token_validity(yandex_disk_token):
+    headers = {
+        "Authorization": f"OAuth {yandex_disk_token}"
+    }
+
+    response = requests.get("https://cloud-api.yandex.net/v1/disk", headers=headers)
+
+    if response.status_code == 200:
+        return True
+    else:
+        return False
+
+
+
+def check_yandex_disk_token(max_attempts=3):
+    for attempt in range(max_attempts):
+        user_input = input(f"Enter your Yandex.Disk token (Attempt {attempt + 1}/{max_attempts}): ")
+
+        if all(ord(c) < 128 for c in user_input):  # Проверяем, что все символы в строке имеют коды меньше 128
+            if check_yandex_disk_token_validity(user_input):
+                print("Yandex.Disk token is valid. Proceeding with the program.")
+                return user_input
+            else:
+                print("Invalid Yandex.Disk token. Please try again.")
+        else:
+            print("Please enter the token using only Latin characters.")
+
+    print("Maximum number of attempts reached. Exiting program.")
+    return None
+
 
 
 def main():
@@ -48,12 +78,14 @@ def main():
 
     vk_access_token = open("token_vk_access").read()
     # vk_user_id = open("token_user_id").read()
-    yandex_disk_token = open("token").read()
+    # yandex_disk_token = open("token").read()
+
+    yandex_disk_token = check_yandex_disk_token()
+
+    if yandex_disk_token is None:
+        return
 
  
-    vk_access_token = open("token_vk_access").read()  # Чтение токена VK из файла
-    yandex_disk_token = open("token").read()  # Чтение токена Яндекс.Диска из файла
-
     user_input = input("Enter user ID or screen_name: ")  # Запрос ввода ID или никнейма
 
     # Получение числового user_id через функцию get_user_id
@@ -66,7 +98,8 @@ def main():
     print("User exists")
     print("VK User ID:", vk_user_id)
 
-
+   
+   
 
     vk = VK(vk_access_token, vk_user_id)
 
