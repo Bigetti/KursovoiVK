@@ -56,16 +56,13 @@ def check_yandex_disk_token_validity(yandex_disk_token):
 
 def check_yandex_disk_token(max_attempts=3):
     for attempt in range(max_attempts):
-        user_input = input(f"Enter your Yandex.Disk token (Attempt {attempt + 1}/{max_attempts}): ")
+        yandex_disk_token = input(f"Enter your Yandex.Disk token (Attempt {attempt + 1}/{max_attempts}): ")
 
-        if all(ord(c) < 128 for c in user_input):  # Проверяем, что все символы в строке имеют коды меньше 128
-            if check_yandex_disk_token_validity(user_input):
-                print("Yandex.Disk token is valid. Proceeding with the program.")
-                return user_input
-            else:
-                print("Invalid Yandex.Disk token. Please try again.")
+        if check_yandex_disk_token_validity(yandex_disk_token):
+            print("Yandex.Disk token is valid. Proceeding with the program.")
+            return yandex_disk_token
         else:
-            print("Please enter the token using only Latin characters.")
+            print("Invalid Yandex.Disk token. Please try again.")
 
     print("Maximum number of attempts reached. Exiting program.")
     return None
@@ -148,24 +145,7 @@ def main():
 
     result_data = []
 
-    for photo in photos_to_save:
-        if 'sizes' in photo:
-                
-            upload_date = photo['date']
-            upload_date_formatted = datetime.datetime.fromtimestamp(upload_date).strftime('%Y-%m-%d')
-                    
-                    # Формируем имя файла на основе количества лайков и даты загрузки
-            likes_count = photo['likes']['count']
-            unique_id = photo['id']
-
-            file_name = f"{likes_count}_{upload_date_formatted}_{unique_id}.jpg"                        
-            photo_info = {"file_name": file_name, "size": "x"}
-            result_data.append(photo_info)
-
-        else:
-            print(f"Фотография с ID {photo['id']} не содержит информации об sizes и URL и будет пропущена.")
-
-
+  
     with open('vk_photos.json', 'w') as json_f:
         json.dump(result_data, json_f, indent=4)
 

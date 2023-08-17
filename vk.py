@@ -82,3 +82,34 @@ class VK:
                 print(f"Фотография с ID {photo['id']} не содержит информации об URL и будет пропущена.")
 
 
+
+
+    def get_user_id_by_nickname(vk_access_token, nickname):
+        params = {
+            "access_token": vk_access_token,
+            "v": "5.131",
+            "screen_name": nickname
+        }
+
+        response = requests.get("https://api.vk.com/method/utils.resolveScreenName", params=params)
+        data = response.json()
+        print (data)
+
+        # if "response" in data and data["response"]["type"] == "user":
+        if "response" in data and isinstance(data["response"], dict) and data["response"]["type"] == "user":        
+            return data["response"]["object_id"]
+        else:
+            return None
+
+    def get_user_id(vk_access_token, user_input):
+        if user_input.isdigit():
+            vk = VK(vk_access_token, user_input)
+            user_info = vk.users_info()
+            print(user_info)
+            if user_info and 'response' in user_info and user_info['response']:
+                vk_user_id = user_info['response'][0].get('id')
+                return vk_user_id
+            else:
+                return None
+        else:
+            return get_user_id_by_nickname(vk_access_token, user_input)

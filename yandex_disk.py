@@ -1,6 +1,8 @@
 import requests
 import datetime
 
+
+
 class YandexDisk:
 
     
@@ -70,3 +72,29 @@ class YandexDisk:
                         print(f'Successfully uploaded {file_name} to Yandex.Disk')
                     else:
                         print(f'Failed to upload {file_name} to Yandex.Disk')
+
+
+
+    def check_yandex_disk_token_validity(self):
+        headers = {
+            "Authorization": f"OAuth {self.token}"
+        }
+        response = requests.get("https://cloud-api.yandex.net/v1/disk", headers=headers)
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+
+    def check_yandex_disk_token(self, max_attempts=3):
+        for attempt in range(max_attempts):
+            user_input = input(f"Enter your Yandex.Disk token (Attempt {attempt + 1}/{max_attempts}): ")
+            if all(ord(c) < 128 for c in user_input):
+                if self.check_yandex_disk_token_validity():
+                    print("Yandex.Disk token is valid. Proceeding with the program.")
+                    return user_input
+                else:
+                    print("Invalid Yandex.Disk token. Please try again.")
+            else:
+                print("Please enter the token using only Latin characters.")
+        print("Maximum number of attempts reached. Exiting program.")
+        return None
